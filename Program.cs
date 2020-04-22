@@ -39,12 +39,12 @@ namespace CreditRequest
         public static void Authorization()
         {
             string login , password;
-            int count = 0;
-            while (count == 0)
+            bool circ = true;
+            while (circ)
             {
                 Console.WriteLine("--------------------------------------------------");
                 Console.WriteLine("Введите логин и пароль:");
-                Console.Write("Login: ");
+                Console.Write("Login(example:000950226): ");
                 login = Console.ReadLine();
 
                 Console.Write("Password: ");
@@ -53,7 +53,64 @@ namespace CreditRequest
             }
         }
         public static void Registration()
-        {}
+        {
+            bool circ = false;
+            int    day,        month,       year;
+            string fname,      lname,       mname;
+            string gender,     passport_id, nationality;
+            string address,     status;
+            string txt;  
+            DateTime birth_date, expiry_date;
+            List<string> ErrorList = new List<string>();
+            User user = new User();
+            do
+            {
+                Console.WriteLine("--------------------------------------------------");
+                Console.WriteLine("РЕГИСТРАЦИЯ:");
+                Console.WriteLine("--------------------------------------------------");
+                Console.Write("Фамилия:        ");
+                user.FisrtName = Console.ReadLine();
+
+                Console.Write("Имя:            ");
+                user.LastName = Console.ReadLine();
+                
+                Console.Write("Отчесвтво:      ");
+                user.MiddleName = Console.ReadLine();
+                
+                Console.Write("Пол  ");
+                user.Gender = Console.ReadLine();
+
+                Console.WriteLine("Дата рождения:(dd.mm.yyyy)");
+                txt = Console.ReadLine();
+                if (txt[0] >= '0' && txt[0] <= 9 && txt[1] >= '0' && txt[1] <= 9)
+                {
+                    day = (int)txt[0] * 10 + (int)txt[1];
+                } else {
+                    circ = true;
+                    ErrorList.Add("неверно введена дата рождения");
+                }
+                // вытащить из текста год, месяц, день;
+                //birth_date = new DateTime(year, month, day);
+                //user.BirthDate = bdate;
+                Console.Write("Серия Паспорта  ");
+                user.Passport_Id = Console.ReadLine();
+            
+                Console.Write("Гражданство:    ");
+                user.Nationality = Console.ReadLine();
+
+                Console.Write("Срок пасспорта(dd.mm.yyyy):");
+                // вытащить из текста год, месяц, день;
+                //expiry_date = new DateTime(year, month, day);
+                //user.BirthDate = expiry_date;
+
+                Console.Write("Адрес:");
+                user.Address = Console.ReadLine();
+
+                Console.Write("Статус(client/admin:)");
+                user.User_Status = Console.ReadLine();
+
+            }while (circ);
+        }
 
     }
 }
