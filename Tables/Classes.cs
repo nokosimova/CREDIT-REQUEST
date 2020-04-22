@@ -2,7 +2,9 @@ using System;
 public class User
 {
     public int Id{get; set;}
-    public string FIO{get; set;}
+    public string FisrtName{get; set;}
+    public string LastName{get; set;}
+    public string MiddleName{get; set;}
     public string Passport_Id{get; set;}
     public string Gender{get; set;}
     public DateTime BirthDate{get; set;}
@@ -16,6 +18,7 @@ public class User
 
 public class CredRequest
 {
+    public int ClientId{get; set;}
     public int CreditSum{get; set;} // в сомони
     public string CreditAim{get; set;}
     public int CtreditTerm{get; set;} // в месяцах

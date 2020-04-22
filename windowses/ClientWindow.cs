@@ -15,6 +15,5 @@ public static class WorkWithClient
     {}
     public static void AccountsPayable(int creditId)
     {}
-
 } 
 }
