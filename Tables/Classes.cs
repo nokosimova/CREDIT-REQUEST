@@ -305,7 +305,7 @@ public class Request:User
             }
             reader.Close();
     }
-    public static Request SelectByUserId(SqlConnection con, int UserId) // for client
+ /*   public static Request SelectByUserId(SqlConnection con, int UserId) // for client
     {string commandText = $"Select r.RequestId, u.FirstName, u.LastName,u.Gender, r.CreditSum, r.Credit_Status from Request_Table r, User_Table u where (r.UserId = 3 and u.UserId = 3)";
             SqlCommand command = new SqlCommand(commandText, con);
             Request request =new Request();
@@ -328,7 +328,7 @@ public class Request:User
             reader.Close();
             return request;
 
-    }
+    }*/
     public static void CreditRequestHistory(SqlConnection con, int UserId)
     {
         string commandText = $"Select r.RequestId, u.FirstName, u.LastName,u.Gender, r.CreditSum,r.CreditAim, r.CreditTerm, r.Credit_Status from Request_Table r, User_Table u where (r.UserId = {UserId} and u.UserId = {UserId})";
@@ -354,6 +354,56 @@ public class Request:User
         }
         reader.Close();
 
+    }
+    public string DecisionForRequest(Request req)
+    {
+        string decision = "";
+        int points = 0;
+        points++;
+        //проверка пола
+        if (req.Gender == "женский") points ++;
+        points++;
+        if (req.MaritalStatus == "в браке" || req.MaritalStatus == "вдовец(ва)")  points++;
+        //проверка возраста
+        if (req.ClientAge > 25) points++;
+        if ((req.ClientAge >=36 && req.ClientAge <=62)) points++;
+        //проверка гражданства
+        if (req.Nationality.ToLower() == "таджикистан") points++;
+        //проверка дохода
+        if (req.CreditPecrectFromEarn < 80) points = points + 4;
+        else 
+        if (req.CreditPecrectFromEarn >= 80 && req.CreditPecrectFromEarn < 150)
+            points = points + 3;
+        else
+        if (req.CreditPecrectFromEarn >= 150 && req.CreditPecrectFromEarn<250)
+            points = points + 2;
+        else 
+        if (req.CreditPecrectFromEarn >= 250) points++;
+        //проверка закрытых кредитов
+        if (req.ClosedCreditCount >= 3) points = points + 2;
+        else
+        if (req.ClosedCreditCount == 0) points--;
+        else points++;
+        //проверка просроченных кредитов
+        if (req.DelayCreditCount > 7) points = points - 3;
+        else
+        if (req.DelayCreditCount >= 5 && req.DelayCreditCount <= 7)
+            points = points - 2;
+        else 
+        if (req.DelayCreditCount == 4) points--;
+        //проверка на цель кредита
+        if (req.CreditAim == "бытовая техника") points = points + 2;
+        else 
+        if (req.CreditAim == "ремонт") points++;
+        else
+        if (req.CreditAim != "телефон") points--;
+        //проверка на срок погашения
+        points++;
+
+        if (points > 11) decision = "принят";
+        else decision = "отклонён";
+
+        return decision;
     }
 }
 
