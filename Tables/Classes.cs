@@ -1,5 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Data.SqlClient;
+
 namespace UserSpace 
 {
 public class User
@@ -140,29 +143,46 @@ public class User
             Console.WriteLine("\nУСПЕШНО! Пользователь зарегистрирован");
             return user;
         }
-        public static void InsertUser()
-        {}
-        public static User FindUser(int UserId)
-        {}
-        public static void DeleteUser(int UserId)
-        {}
-        public static void UploadUser(int UserId)
-        {}
+        //добавляет пользователя в таблицу UserTable
+        public void InsertUser(SqlConnection con)
+        {
+            string insertSqlCommand = string.Format($"insert into UserTable([FirstName],[LastName],[MiddleName],[Login],[Password],[Gender],[BirthDate],[Passport_Id],[Nationality],[ExpiryDate],[Address],[User_Status]) Values('{FisrtName}', '{LastName}','{MiddleName}','{Login}','{Password}','{Gender}','{BirthDate}','{Passport_Id}','{Nationality}','{Expiry_Date}','{Address}','{User_Status}')");
+            SqlCommand command = new SqlCommand(insertSqlCommand, con);
+            var result = command.ExecuteNonQuery();
+            if (result > 0) 
+                Console.WriteLine("Данные успешно добавлены!");
+        }
+        public void SelectAllUsers(SqlConnection con)
+        {
+            string commandText = "Select * from UserTable";
+            SqlCommand command = new SqlCommand(commandText, con);
 
-
-}
+            SqlDataReader reader = command.ExecuteReader();
+            Console.WriteLine("----------------------------------------------------------------------");
+            Console.WriteLine("id |             ФИО                   |Дата рождения| Серия паспорта |Статус|");
+            while (reader.Read())
+            {
+                System.Console.WriteLine($"{reader.GetValue("UserId")} |{reader.GetValue("FirstName")} {reader.GetValue("LastName")} {reader.GetValue("MiddleName")} |{reader.GetValue("BirthDate")} |{reader.GetValue("Passport_Id")} | {reader.GetValue("User_Status")}");
+            }
+            reader.Close();
+        }
+    }
 public class CredRequest : User
 {
     public int RequestId{get; set;}
     public int CreditSum{get; set;} // в сомони
     public string CreditAim{get; set;}
-    public int CtreditTerm{get; set;} // в месяцах
+    public int CreditTerm{get; set;} // в месяцах
     public string MaritalStatus{get; set;}
     public int ClientAge{get; set;}
     public int ClinetEarning{get; set;}
     public string PhoneNumber{get; set;}
     public int ClosedCreditCount{get; set;}
     public int DelayCreditCount{get; set;}
+
+    public void InsertRequest()
+    {
+    }
 
 }
 }
