@@ -9,7 +9,7 @@ namespace CreditRequest
     {
         static void Main(string[] args)
         {
-            int i, command;
+            int i, command=0;
             bool circ = true;
 
 
@@ -26,12 +26,22 @@ namespace CreditRequest
             {
                 Console.WriteLine("--------------------------------------------------");
                 command = int.Parse(Console.ReadLine());
-                if (command == 1) { User.Authorization(); circ = false; }
-                else if (command == 2) { User.Registration(); circ = false;}
-                else Console.WriteLine("");
+                if (command == 1 || command == 2) circ = false;
             }
-            
-
+            if (command == 1) { 
+                    User.Authorization(); 
+                    circ = false; 
+            } else 
+                
+                if (command == 2) { 
+                    
+                    User new_user = User.Registration(); 
+                    SqlConnection con = new SqlConnection(MSSqlDA.conString);
+                    con.Open();
+                    new_user.InsertUser(con); //добавляем нового пользователя, ПОКА НЕ РАБОТАЕТ
+                    User.SelectAllUsers(con);
+                    con.Close();
+                    }
            
             
             Console.ReadKey();
