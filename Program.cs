@@ -36,6 +36,10 @@ namespace CreditRequest
                     circ = false; 
                     User.Authorization(con, ref user);
                     con.Close();
+                    if (user.User_Status == "клиент")
+                        user.WorkAsCLient();
+                    else if (user.User_Status == "админ")
+                            User.WorkAsAdmin(user);
             } else 
                 
                 if (command == 2) { 

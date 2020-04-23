@@ -2,7 +2,7 @@ using System;
 using UserSpace;
 namespace CreditRequest
 {
-public class ClientFunction
+public static class ClientFunction
 {
     public static void MainClientWindow(User user)
     {
@@ -12,13 +12,14 @@ public class ClientFunction
         Console.WriteLine("1 - Подать заявку на получение кредита           |");
         Console.WriteLine("2 - История заявок                               |");
         Console.WriteLine("3 - Мои кредиты                                  |");
+        Console.WriteLine("4 - Выход                                        |");
         Console.WriteLine("--------------------------------------------------");
     }
-    public static void CreditRequestHistory(string user)
+    public static void CreditRequestHistory(int UserId)
     {}
-    public static void ClientsCredits(string user)
+    public static void ClientsCredits(int UserId)
     {}
-    public static void CreditApplication(string user)
+    public static void CreditApplication(User user)
     {}
     public static void AccountsPayable(int creditId)
     {}

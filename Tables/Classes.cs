@@ -213,9 +213,36 @@ public class User
             reader.Close();
             return user;
         }
-        public static void WorkAsCLient(User client)
-        {}
-        public static void WorkAsAdmin(User admin)
+        public void WorkAsCLient()
+        {
+            int command;
+            bool circ = true;
+            ClientFunction.MainClientWindow(this);
+            do{
+               Console.Write("действие: ");
+               command = int.Parse(Console.ReadLine());
+               if (command == 1)
+               {
+                   ClientFunction.CreditApplication(this); //заполнение заявки на кредит
+                   //...
+                   //circ = false;
+               } else if (command == 2)
+                 { 
+                    ClientFunction.CreditRequestHistory(this.UserId);
+                    //circ = false;
+                 } else if (command == 3)
+                   {
+                       ClientFunction.ClientsCredits(this.UserId);
+                    //   circ = false;
+                   }
+                   else if (command == 4)
+                       circ = false;
+                   else {
+                       Console.WriteLine("Неверная команда, попробуйте ещё раз");
+                   }
+            } while(circ);
+        }
+        public void WorkAsAdmin()
         {}
 }
 public class Request : User
@@ -231,7 +258,7 @@ public class Request : User
     public int ClosedCreditCount{get; set;}
     public int DelayCreditCount{get; set;}
 
-    public void InsertRequest()
+    public void InsertRequest(SqlConnection con)
     {
     }
 
