@@ -1,0 +1,21 @@
+string commandText = $"Select* from request_Table where request_Table.Login = {Login}";
+            SqlCommand command = new SqlCommand(commandText, con);
+            request request =new request();
+            SqlDataReader reader = command.ExecuteReader();
+            while (reader.Read())
+            {
+                request.requestId = (int)(reader.GetValue("requestId"));
+                request.FisrtName=(string)reader.GetValue("FirstName");
+                request.LastName=(string)reader.GetValue("LastName");
+                request.MiddleName=(string)reader.GetValue("MiddleName");
+                request.Login = (string)reader.GetValue("Login");
+                request.Password = (string)reader.GetValue("Password");
+                request.Gender = (string)reader.GetValue("Gender");
+                request.BirthDate = (DateTime)reader.GetValue("BirthDate");
+                request.Passport_Id = (string)reader.GetValue("Passport_Id");
+                request.Nationality = (string)reader.GetValue("Nationality");
+                request.Address= (string)reader.GetValue("Address");
+                request.request_Status = (string)reader.GetValue("request_Status");
+            }
+            reader.Close();
+            return request;

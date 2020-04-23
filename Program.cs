@@ -29,17 +29,17 @@ namespace CreditRequest
                 if (command == 1 || command == 2) circ = false;
             }
             if (command == 1) { 
-                    con = new SqlConnection(MSSqlDA.conString);
+                    //con = new SqlConnection(MSSqlDA.conString);
                     User user = new User();
 
-                    con.Open();
+                    //con.Open();
                     circ = false; 
-                    User.Authorization(con, ref user);
-                    con.Close();
+                    User.Authorization(ref user);
                     if (user.User_Status == "клиент")
-                        user.WorkAsCLient();
-                    else if (user.User_Status == "админ")
-                            User.WorkAsAdmin(user);
+                        User.WorkAsCLient(ref user);
+                   // else if (user.User_Status == "админ")
+                      //      user.WorkAsAdmin();
+                    //con.Close();
             } else 
                 
                 if (command == 2) { 

@@ -1,5 +1,7 @@
 using System;
 using UserSpace;
+using System.Data.SqlClient;
+using CR_DataAccess;
 namespace CreditRequest
 {
 public static class ClientFunction
@@ -15,14 +17,14 @@ public static class ClientFunction
         Console.WriteLine("4 - Выход                                       |");
         Console.WriteLine("--------------------------------------------------");
     }
-    public static void CreditRequestHistory(int UserId)
-    {}
+
     public static void ClientsCredits(int UserId)
     {}
     public static Request CreditApplication(User user)
     {
         Request new_req = new Request();
         double percent;
+        int command;
         Console.WriteLine("---------------------------------------");
         Console.WriteLine("ЗАЯВКА НА КРЕДИТ");
         Console.WriteLine("---------------------------------------");
@@ -33,14 +35,33 @@ public static class ClientFunction
         Console.WriteLine("бытовая техника-- 1");
         Console.WriteLine("ремонт----------- 2");
         Console.WriteLine("телефон---------- 3");
-        new_req.CreditAim = Console.ReadLine();
+        command = int.Parse(Console.ReadLine());
+        if (command== 1)
+            new_req.CreditAim = "бытовая техника";
+        else  
+        if (command== 2)
+            new_req.CreditAim = "ремонт";
+        else 
+        if (command== 3)
+            new_req.CreditAim = "телефон";
 
         Console.WriteLine("Семейное положение:");
-        Console.WriteLine("холост/незамужем-- 1");
-        Console.WriteLine("в браке----------- 2");
-        Console.WriteLine("в разводе -------- 3");
-        Console.WriteLine("вдовец/вдова------ 4");
-        new_req.MaritalStatus = Console.ReadLine();
+        Console.WriteLine("холост(а) - 1");
+        Console.WriteLine("в браке--------------- 2");
+        Console.WriteLine("в разводе ------------ 3");
+        Console.WriteLine("вдовец(ва)------------ 4");
+        command = int.Parse(Console.ReadLine());
+        if (command== 2)
+            new_req.MaritalStatus = "в браке";
+        else  
+        if (command== 3)
+            new_req.MaritalStatus = "в разводе";
+        else 
+        if (command== 1)
+            new_req.MaritalStatus = "холост(а)";
+        else 
+        if (command== 4)
+            new_req.MaritalStatus = "вдовец(ва)";
 
         Console.Write("ваш доход(сомони): ");
         new_req.ClientEarning = int.Parse(Console.ReadLine());
@@ -52,7 +73,9 @@ public static class ClientFunction
         new_req.ClientAge = user.BirthDate.Year;
         percent = (new_req.CreditSum/new_req.ClientEarning)*100;
         new_req.CreditPecrectFromEarn = Math.Round(percent,4);
-
+        new_req.PhoneNumber = user.Login;
+        new_req.ClosedCreditCount = user.ClosedCreditCount;
+        new_req.DelayCreditCount = user.DelayCreditCount;
         return new_req;
 
     }

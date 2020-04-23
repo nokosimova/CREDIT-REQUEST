@@ -26,10 +26,12 @@ public class User
 
     public string User_Status{get; set;} //клиент или администратор
 
-        public static void Authorization(SqlConnection con, ref User user)
+        public static void Authorization( ref User user)
         {
             string login , password;
             bool circ = true;
+            SqlConnection con = new SqlConnection(MSSqlDA.conString);
+            con.Open();
             while (circ)
             {
                 Console.WriteLine("--------------------------------------------------");
@@ -48,7 +50,7 @@ public class User
                     Console.WriteLine("Попробуйте ещё раз");
                 }
             }
-            
+            con.Close();  
         }
         public static User Registration()
         {
@@ -171,7 +173,7 @@ public class User
             string bdate = BirthDate.ToString("MM/dd/yyyy");
             string exdate = Expiry_Date.ToString("MM/dd/yyyy");
 
-            string insertSqlCommand = string.Format($"insert into User_Table([FirstName],[LastName],[MiddleName],[Login],[Password],[Gender],[BirthDate],[Passport_Id],[Nationality],[Expire_Date],[Address],[User_Status]) Values('{FisrtName}', '{LastName}','{MiddleName}','{Login}','{Password}','{Gender}','{bdate}','{Passport_Id}','{Nationality}','{exdate}','{Address}','{User_Status}')");
+            string insertSqlCommand = string.Format($"insert into User_Table([FirstName],[LastName],[MiddleName],[Login],[Password],[Gender],[BirthDate],[Passport_Id],[Nationality],[Expire_Date],[Address],[User_Status],[ClosedCreditCount],[DelayCreditCount]) Values('{FisrtName}', '{LastName}','{MiddleName}','{Login}','{Password}','{Gender}','{bdate}','{Passport_Id}','{Nationality}','{exdate}','{Address}','{User_Status}','{0}','{0}')");
             SqlCommand command = new SqlCommand(insertSqlCommand, con);
             var result = command.ExecuteNonQuery();
             
@@ -216,26 +218,38 @@ public class User
             reader.Close();
             return user;
         }
-        public void WorkAsCLient()
+        public static void WorkAsCLient(ref User user)
         {
             int command;
             bool circ = true;
-            ClientFunction.MainClientWindow(this);
+            Console.WriteLine("--------------------------------------------------");
+            Console.WriteLine($"Добро пожаловать, {user.LastName}!              |");
             do{
+               ClientFunction.MainClientWindow();
                Console.Write("действие: ");
                command = int.Parse(Console.ReadLine());
                if (command == 1)
                {
-                   ClientFunction.CreditApplication(this); //заполнение заявки на кредит
+                   SqlConnection con = new SqlConnection(MSSqlDA.conString);
+                   con.Open();
+                   Request new_request = ClientFunction.CreditApplication(user); //заполнение заявки на кредит
+                   new_request.InsertRequest(con, ref user);
+                   con.Close();
                    //...
                    //circ = false;
                } else if (command == 2)
                  { 
-                    ClientFunction.CreditRequestHistory(this.UserId);
+                    SqlConnection con = new SqlConnection(MSSqlDA.conString);
+                    con.Open();
+                    Request.CreditRequestHistory(con, user.UserId);
+                    con.Close();
                     //circ = false;
                  } else if (command == 3)
                    {
-                       ClientFunction.ClientsCredits(this.UserId);
+                       SqlConnection con = new SqlConnection(MSSqlDA.conString);
+                       con.Open();
+                       Request.ClientsCredits(con, user.UserId);
+                       con.Close();
                     //   circ = false;
                    }
                    else if (command == 4)
@@ -258,12 +272,20 @@ public class Request:User
     public int ClientAge{get; set;}
     public int ClientEarning{get; set;}
     public string PhoneNumber{get; set;}
-    public int CreditPecrectFromEarn{get;set;}//процент кредита от дохода
-    public void InsertRequest(SqlConnection con, User user)
-    {
-        string insertSqlCommand = string.Format($"insert into Request_Table([UserId],[ClientFIO],[ClGender],[CreditSum],[CreditAim],[CreditTerm],[MaritalStatus],[ClientAge],[ClientEarning],[PhoneNumber],[ClosedCreditCount],[DelayCreditCount]) Values('{user.UserId}','{user.FisrtName + user.LastName + user.MiddleName}','{user.Gender}','{CreditSum}','{CreditAim}','{CreditTerm}','{MaritalStatus}','{ClientAge}','{ClientEarning}','{PhoneNumber}','{user.ClosedCreditCount}','{user.DelayCreditCount}'");
+    public double CreditPecrectFromEarn{get;set;}//процент кредита от дохода
 
-        SqlCommand command = new SqlCommand(insertSqlCommand, con);
+    public string Credit_Status{get; set;}
+    public void InsertRequest(SqlConnection con, ref User user)
+    {
+        string commandText = $"Select UserId from User_Table where User_Table.Login = {user.Login}";
+        SqlCommand command = new SqlCommand(commandText, con);
+        SqlDataReader reader = command.ExecuteReader();
+        while (reader.Read())
+            user.UserId = (int)(reader.GetValue("UserId"));
+        reader.Close();
+        
+        string insertSqlCommand = string.Format($"insert into Request_Table([UserId],[ClientFIO],[ClGender],[Nationality],[CreditSum],[CreditAim],[CreditTerm],[MaritalStatus],[ClientAge],[ClientEarning],[PhoneNumber]) Values('{user.UserId}','{user.FisrtName + user.LastName + user.MiddleName}','{user.Gender}','{user.Nationality}','{CreditSum}','{CreditAim}','{CreditTerm}','{MaritalStatus}','{ClientAge}','{ClientEarning}','{PhoneNumber}')");
+        command = new SqlCommand(insertSqlCommand, con);
         var result = command.ExecuteNonQuery();
             
         if (result > 0) 
@@ -276,12 +298,62 @@ public class Request:User
 
             SqlDataReader reader = command.ExecuteReader();
             Console.WriteLine("----------------------------------------------------------------------");
-            Console.WriteLine("Id |               ФИО                |  Пол  | Серия паспорта |Статус|");
+            //Console.WriteLine("Id |               ФИО                |  Пол  | Серия паспорта |Статус|");
             while (reader.Read())
             {
                 System.Console.WriteLine($"{reader.GetValue("RequestId")} |{reader.GetValue("FirstName")} {reader.GetValue("LastName")} {reader.GetValue("MiddleName")} |{reader.GetValue("ClientAge")} |{reader.GetValue("CreditSum")} | {reader.GetValue("Credit_Status")}");
             }
             reader.Close();
+    }
+    public static Request SelectByUserId(SqlConnection con, int UserId) // for client
+    {string commandText = $"Select r.RequestId, u.FirstName, u.LastName,u.Gender, r.CreditSum, r.Credit_Status from Request_Table r, User_Table u where (r.UserId = 3 and u.UserId = 3)";
+            SqlCommand command = new SqlCommand(commandText, con);
+            Request request =new Request();
+            SqlDataReader reader = command.ExecuteReader();
+            while (reader.Read())
+            {
+                request.RequestId = (int)(reader.GetValue("requestId"));
+                request.FisrtName = (string)reader.GetValue("FirstName");
+                request.LastName = (string)reader.GetValue("LastName");
+                request.MiddleName = (string)reader.GetValue("MiddleName");
+                request.Login = (string)reader.GetValue("Login");
+                request.Password = (string)reader.GetValue("Password");
+                request.Gender = (string)reader.GetValue("Gender");
+                request.BirthDate = (DateTime)reader.GetValue("BirthDate");
+                request.Passport_Id = (string)reader.GetValue("Passport_Id");
+                request.Nationality = (string)reader.GetValue("Nationality");
+                request.Address= (string)reader.GetValue("Address");
+                request.Credit_Status = (string)reader.GetValue("Credit_Status");
+            }
+            reader.Close();
+            return request;
+
+    }
+    public static void CreditRequestHistory(SqlConnection con, int UserId)
+    {
+        string commandText = $"Select r.RequestId, u.FirstName, u.LastName,u.Gender, r.CreditSum,r.CreditAim, r.CreditTerm, r.Credit_Status from Request_Table r, User_Table u where (r.UserId = {UserId} and u.UserId = {UserId})";
+        SqlCommand command = new SqlCommand(commandText, con);
+        SqlDataReader reader = command.ExecuteReader();
+        Console.WriteLine("История заявок:");
+        while(reader.Read())
+        {
+            System.Console.WriteLine($"{reader.GetValue("RequestId")} | {reader.GetValue("FirstName")}{reader.GetValue("LastName")} | {reader.GetValue("Gender")}|{reader.GetValue("CreditSum")} |{reader.GetValue("CreditAim")}|{reader.GetValue("CreditTerm")}| {reader.GetValue("Credit_Status")}"); 
+        }
+        reader.Close();
+    }
+
+    public static void ClientsCredits(SqlConnection con, int UserId)
+    {
+        string commandText = $"Select r.RequestId, u.FirstName, u.LastName,u.Gender, r.CreditSum,r.CreditAim, r.CreditTerm, r.Credit_Status from Request_Table r, User_Table u where (r.UserId = {UserId} and u.UserId = {UserId} and r.Credit_Status = 'принят')";
+        SqlCommand command = new SqlCommand(commandText, con);
+        SqlDataReader reader = command.ExecuteReader();
+        Console.WriteLine("История заявок:");
+        while(reader.Read())
+        {
+            System.Console.WriteLine($"{reader.GetValue("RequestId")} | {reader.GetValue("FirstName")}{reader.GetValue("LastName")} | {reader.GetValue("Gender")}|{reader.GetValue("CreditSum")} |{reader.GetValue("CreditAim")}|{reader.GetValue("CreditTerm")}| {reader.GetValue("Credit_Status")}"); 
+        }
+        reader.Close();
+
     }
 }
 
