@@ -283,13 +283,17 @@ public class Request:User
         while (reader.Read())
             user.UserId = (int)(reader.GetValue("UserId"));
         reader.Close();
-        
-        string insertSqlCommand = string.Format($"insert into Request_Table([UserId],[ClientFIO],[ClGender],[Nationality],[CreditSum],[CreditAim],[CreditTerm],[MaritalStatus],[ClientAge],[ClientEarning],[PhoneNumber]) Values('{user.UserId}','{user.FisrtName + user.LastName + user.MiddleName}','{user.Gender}','{user.Nationality}','{CreditSum}','{CreditAim}','{CreditTerm}','{MaritalStatus}','{ClientAge}','{ClientEarning}','{PhoneNumber}')");
+        Credit_Status = this.DecisionForRequest();
+
+        string insertSqlCommand = string.Format($"insert into Request_Table([UserId],[ClientFIO],[ClGender],[Nationality],[CreditSum],[CreditAim],[CreditTerm],[MaritalStatus],[ClientAge],[ClientEarning],[Credit_Status]) Values('{user.UserId}','{user.FisrtName + user.LastName + user.MiddleName}','{user.Gender}','{user.Nationality}','{CreditSum}','{CreditAim}','{CreditTerm}','{MaritalStatus}','{ClientAge}','{ClientEarning}','{Credit_Status}')");
         command = new SqlCommand(insertSqlCommand, con);
         var result = command.ExecuteNonQuery();
             
         if (result > 0) 
             Console.WriteLine("Запрос отправлен!");
+        Console.WriteLine($"Ваш кредит{Credit_Status.ToLower()}");
+        if (Credit_Status == "принят")
+            this.RepayMentSchedule();
     }
     public static void SelectAllRequest(SqlConnection con) // for admin work
     {
@@ -355,48 +359,48 @@ public class Request:User
         reader.Close();
 
     }
-    public string DecisionForRequest(Request req)
+    public string DecisionForRequest()
     {
         string decision = "";
         int points = 0;
         points++;
         //проверка пола
-        if (req.Gender == "женский") points ++;
+        if (Gender == "женский") points ++;
         points++;
-        if (req.MaritalStatus == "в браке" || req.MaritalStatus == "вдовец(ва)")  points++;
+        if (MaritalStatus == "в браке" || MaritalStatus == "вдовец(ва)")  points++;
         //проверка возраста
-        if (req.ClientAge > 25) points++;
-        if ((req.ClientAge >=36 && req.ClientAge <=62)) points++;
+        if (ClientAge > 25) points++;
+        if ((ClientAge >=36 && ClientAge <=62)) points++;
         //проверка гражданства
-        if (req.Nationality.ToLower() == "таджикистан") points++;
+        if (Nationality.ToLower() == "таджикистан") points++;
         //проверка дохода
-        if (req.CreditPecrectFromEarn < 80) points = points + 4;
+        if (CreditPecrectFromEarn < 80) points = points + 4;
         else 
-        if (req.CreditPecrectFromEarn >= 80 && req.CreditPecrectFromEarn < 150)
+        if (CreditPecrectFromEarn >= 80 && CreditPecrectFromEarn < 150)
             points = points + 3;
         else
-        if (req.CreditPecrectFromEarn >= 150 && req.CreditPecrectFromEarn<250)
+        if (CreditPecrectFromEarn >= 150 && CreditPecrectFromEarn<250)
             points = points + 2;
         else 
-        if (req.CreditPecrectFromEarn >= 250) points++;
+        if (CreditPecrectFromEarn >= 250) points++;
         //проверка закрытых кредитов
-        if (req.ClosedCreditCount >= 3) points = points + 2;
+        if (ClosedCreditCount >= 3) points = points + 2;
         else
-        if (req.ClosedCreditCount == 0) points--;
+        if (ClosedCreditCount == 0) points--;
         else points++;
         //проверка просроченных кредитов
-        if (req.DelayCreditCount > 7) points = points - 3;
+        if (DelayCreditCount > 7) points = points - 3;
         else
-        if (req.DelayCreditCount >= 5 && req.DelayCreditCount <= 7)
+        if (DelayCreditCount >= 5 && DelayCreditCount <= 7)
             points = points - 2;
         else 
-        if (req.DelayCreditCount == 4) points--;
+        if (DelayCreditCount == 4) points--;
         //проверка на цель кредита
-        if (req.CreditAim == "бытовая техника") points = points + 2;
+        if (CreditAim == "бытовая техника") points = points + 2;
         else 
-        if (req.CreditAim == "ремонт") points++;
+        if (CreditAim == "ремонт") points++;
         else
-        if (req.CreditAim != "телефон") points--;
+        if (CreditAim != "телефон") points--;
         //проверка на срок погашения
         points++;
 
@@ -404,6 +408,24 @@ public class Request:User
         else decision = "отклонён";
 
         return decision;
+    }
+    public void RepayMentSchedule()
+    {
+        double sum_per_month = Math.Round((double)CreditSum/CreditTerm,3), cur_sum=0;
+        TimeSpan aMonth = new System.TimeSpan(30, 0, 0, 0);  
+        DateTime cur_dt = DateTime.Now;
+        Console.WriteLine("------------------------------------------");
+        Console.WriteLine($"Сумма кредита: {this.CreditSum}сомони    |");
+        Console.WriteLine("------------------------------------------");
+        Console.WriteLine($"График погашения:                        |");
+        Console.WriteLine("------------------------------------------");
+        for (int i = 1; i <= this.CreditTerm; i++)
+        {
+            cur_sum = cur_sum + sum_per_month;
+            Console.WriteLine($"{cur_dt.ToString("yyyy MMMM")} : {sum_per_month}");
+            Console.WriteLine("------------------------------------------");
+            cur_dt.Add(aMonth);
+        }
     }
 }
 
