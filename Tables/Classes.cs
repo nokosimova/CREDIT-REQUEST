@@ -46,6 +46,7 @@ public class User
                     circ = false;
                 else
                 {
+                    Console.WriteLine("----------------------------------------");
                     Console.WriteLine("Ошибка! Неверно введён логин или пароль.");
                     Console.WriteLine("Попробуйте ещё раз");
                 }
@@ -180,7 +181,7 @@ public class User
             if (result > 0) 
                 Console.WriteLine("Данные успешно добавлены!");
         }
-        public static void SelectAllUsers(SqlConnection con)//DONE
+        public static void SelectAllUsers(SqlConnection con)//DONE for admin
         {
             string commandText = "Select * from User_Table";
             SqlCommand command = new SqlCommand(commandText, con);
@@ -222,7 +223,6 @@ public class User
         {
             int command;
             bool circ = true;
-            Console.WriteLine("--------------------------------------------------");
             Console.WriteLine($"Добро пожаловать, {user.LastName}!              |");
             do{
                ClientFunction.MainClientWindow();
@@ -253,7 +253,10 @@ public class User
                     //   circ = false;
                    }
                    else if (command == 4)
-                       circ = false;
+                    { 
+                        circ = false;
+                        Console.WriteLine("Всего доброго, заходите снова!");
+                    }
                    else {
                        Console.WriteLine("Неверная команда, попробуйте ещё раз");
                    }
@@ -266,6 +269,7 @@ public class Request:User
 {
     public int RequestId{get; set;}
     public int CreditSum{get; set;} // в сомони
+    public DateTime RequestDate{get; set;}
     public string CreditAim{get; set;}
     public int CreditTerm{get; set;} // в месяцах
     public string MaritalStatus{get; set;}
@@ -283,15 +287,17 @@ public class Request:User
         while (reader.Read())
             user.UserId = (int)(reader.GetValue("UserId"));
         reader.Close();
+        
         Credit_Status = this.DecisionForRequest();
+        RequestDate = DateTime.Now;
 
-        string insertSqlCommand = string.Format($"insert into Request_Table([UserId],[ClientFIO],[ClGender],[Nationality],[CreditSum],[CreditAim],[CreditTerm],[MaritalStatus],[ClientAge],[ClientEarning],[Credit_Status]) Values('{user.UserId}','{user.FisrtName + user.LastName + user.MiddleName}','{user.Gender}','{user.Nationality}','{CreditSum}','{CreditAim}','{CreditTerm}','{MaritalStatus}','{ClientAge}','{ClientEarning}','{Credit_Status}')");
+        string insertSqlCommand = string.Format($"insert into Request_Table([UserId],[ClGender],[CreditSum],[CreditAim],[CreditTerm],[MaritalStatus],[ClientAge],[ClientEarning],[PhoneNumber],[ClosedCreditCount],[DelayCreditCount],[Credit_Status],[Nationality],[RequestDate]) Values('{user.UserId}','{user.Gender}','{CreditSum}','{CreditAim}','{CreditTerm}','{MaritalStatus}','{ClientAge}','{ClientEarning}','{PhoneNumber}','{user.ClosedCreditCount}','{user.DelayCreditCount}','{Credit_Status}','{Nationality}','{RequestDate.ToString("MM/dd/yyyy")}')");
         command = new SqlCommand(insertSqlCommand, con);
         var result = command.ExecuteNonQuery();
             
         if (result > 0) 
             Console.WriteLine("Запрос отправлен!");
-        Console.WriteLine($"Ваш кредит{Credit_Status.ToLower()}");
+        Console.WriteLine($"Ваш кредит  {Credit_Status.ToUpper()}");
         if (Credit_Status == "принят")
             this.RepayMentSchedule();
     }
@@ -351,11 +357,13 @@ public class Request:User
         string commandText = $"Select r.RequestId, u.FirstName, u.LastName,u.Gender, r.CreditSum,r.CreditAim, r.CreditTerm, r.Credit_Status from Request_Table r, User_Table u where (r.UserId = {UserId} and u.UserId = {UserId} and r.Credit_Status = 'принят')";
         SqlCommand command = new SqlCommand(commandText, con);
         SqlDataReader reader = command.ExecuteReader();
-        Console.WriteLine("История заявок:");
+        Console.WriteLine("Мои кредиты:");
+        Console.WriteLine("------------------------------------------");
         while(reader.Read())
         {
             System.Console.WriteLine($"{reader.GetValue("RequestId")} | {reader.GetValue("FirstName")}{reader.GetValue("LastName")} | {reader.GetValue("Gender")}|{reader.GetValue("CreditSum")} |{reader.GetValue("CreditAim")}|{reader.GetValue("CreditTerm")}| {reader.GetValue("Credit_Status")}"); 
         }
+        Console.WriteLine("------------------------------------------");
         reader.Close();
 
     }
@@ -403,7 +411,7 @@ public class Request:User
         if (CreditAim != "телефон") points--;
         //проверка на срок погашения
         points++;
-
+        points = 12;
         if (points > 11) decision = "принят";
         else decision = "отклонён";
 
@@ -424,7 +432,7 @@ public class Request:User
             cur_sum = cur_sum + sum_per_month;
             Console.WriteLine($"{cur_dt.ToString("yyyy MMMM")} : {sum_per_month}");
             Console.WriteLine("------------------------------------------");
-            cur_dt.Add(aMonth);
+            cur_dt = cur_dt.Add(aMonth);
         }
     }
 }
