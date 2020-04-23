@@ -2,9 +2,9 @@ using System;
 using UserSpace;
 namespace CreditRequest
 {
-public static class WorkWithClient
+public class ClientFunction
 {
-    public static void MainWindow(User user)
+    public static void MainClientWindow(User user)
     {
         Console.WriteLine("--------------------------------------------------");
         Console.WriteLine($"Добро пожаловать, {user.LastName}!              |");
@@ -16,7 +16,7 @@ public static class WorkWithClient
     }
     public static void CreditRequestHistory(string user)
     {}
-    public static void UsersCredit(string user)
+    public static void ClientsCredits(string user)
     {}
     public static void CreditApplication(string user)
     {}

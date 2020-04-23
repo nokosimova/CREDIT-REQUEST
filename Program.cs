@@ -9,10 +9,9 @@ namespace CreditRequest
     {
         static void Main(string[] args)
         {
-            int i, command=0;
+            int command=0;
             bool circ = true;
-
-
+            SqlConnection con;
             Console.WriteLine("--------------------------------------------------");
             Console.WriteLine("Добро пожаловать, Уважаемый ползователь!          |");
             Console.WriteLine("Выберите дальнейшие действия:                     |");
@@ -22,6 +21,7 @@ namespace CreditRequest
             {
               Console.WriteLine("                                                  |");   
             }*/
+            
             while (circ)
             {
                 Console.WriteLine("--------------------------------------------------");
@@ -29,15 +29,19 @@ namespace CreditRequest
                 if (command == 1 || command == 2) circ = false;
             }
             if (command == 1) { 
-                    User.Authorization(); 
+                    con = new SqlConnection(MSSqlDA.conString);
+                    User user = new User();
+
+                    con.Open();
                     circ = false; 
+                    User.Authorization(con, ref user);
+                    con.Close();
             } else 
                 
                 if (command == 2) { 
-                    
-                    User new_user = User.Registration(); 
-                    SqlConnection con = new SqlConnection(MSSqlDA.conString);
+                    con = new SqlConnection(MSSqlDA.conString);
                     con.Open();
+                    User new_user = User.Registration(); 
                     new_user.InsertUser(con); //добавляем нового пользователя, ПОКА НЕ РАБОТАЕТ
                     User.SelectAllUsers(con);
                     con.Close();

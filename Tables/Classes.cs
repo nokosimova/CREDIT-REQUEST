@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
+using CreditRequest;
+using CR_DataAccess;
 
 namespace UserSpace 
 {
@@ -21,8 +23,8 @@ public class User
     public string Password{get; set;}
     public string User_Status{get; set;} //клиент или администратор
 
-    public static void Authorization(SqlConnection con)
-    {
+        public static void Authorization(SqlConnection con, ref User user)
+        {
             string login , password;
             bool circ = true;
             while (circ)
@@ -34,13 +36,18 @@ public class User
 
                 Console.Write("Password: ");
                 password = Console.ReadLine();
-                if (User.CheckUserInDB(con, login, password))
-                {}
-                //Проверить данные в базе и выдать сообщение при ошибке
+                user = User.SelectByLogin(con, login, password);
+                if (user.Login == login && user.Password == password)
+                    circ = false;
+                else
+                {
+                    Console.WriteLine("Ошибка! Неверно введён логин или пароль.");
+                    Console.WriteLine("Попробуйте ещё раз");
+                }
             }
             
-    }
-    public static User Registration()
+        }
+        public static User Registration()
         {
             bool circ = false;
             int    day, month, year;
@@ -66,10 +73,10 @@ public class User
                 Console.Write("Отчесвтво:      ");
                 user.MiddleName = Console.ReadLine();
                 
-                Console.Write("Пол (М / Ж)");
+                Console.Write("Пол (мужской / женский)");
                 user.Gender = Console.ReadLine();
 
-                Console.WriteLine("Дата рождения:(dd.mm.yyyy)");
+                Console.Write("Дата рождения:(dd.mm.yyyy)");
                 txt = Console.ReadLine();
                 if (txt.Length != 10) 
                 {
@@ -156,7 +163,7 @@ public class User
             return user;
         }
         //добавляет пользователя в таблицу UserTable
-        public void InsertUser(SqlConnection con)
+        public void InsertUser(SqlConnection con)//DONE
         {
             string bdate = BirthDate.ToString("MM/dd/yyyy");
             string exdate = Expiry_Date.ToString("MM/dd/yyyy");
@@ -168,7 +175,7 @@ public class User
             if (result > 0) 
                 Console.WriteLine("Данные успешно добавлены!");
         }
-        public static void SelectAllUsers(SqlConnection con)
+        public static void SelectAllUsers(SqlConnection con)//DONE
         {
             string commandText = "Select * from User_Table";
             SqlCommand command = new SqlCommand(commandText, con);
@@ -182,28 +189,36 @@ public class User
             }
             reader.Close();
         }
-
-        public static bool CheckUserInDB(SqlConnection con, string Login, string Password)
+        public static User SelectByLogin(SqlConnection con, string Login, string Password)//DONE
         {
-            string commandText = $"Select Login, Password from User_Table where User_Table.Login = {Login}";
+            string commandText = $"Select* from User_Table where User_Table.Login = {Login}";
             SqlCommand command = new SqlCommand(commandText, con);
-            string l="", p="";
+            User user =new User();
             SqlDataReader reader = command.ExecuteReader();
-            Console.WriteLine("----------------------------------------------------------------------");
-            Console.WriteLine("Login |             ФИО                   |Дата рождения| Серия паспорта |Статус|");
             while (reader.Read())
             {
-                l = (string)reader.GetValue("Login");
-                p = (string)reader.GetValue("Password");
+                user.UserId = (int)(reader.GetValue("UserId"));
+                user.FisrtName=(string)reader.GetValue("FirstName");
+                user.LastName=(string)reader.GetValue("LastName");
+                user.MiddleName=(string)reader.GetValue("MiddleName");
+                user.Login = (string)reader.GetValue("Login");
+                user.Password = (string)reader.GetValue("Password");
+                user.Gender = (string)reader.GetValue("Gender");
+                user.BirthDate = (DateTime)reader.GetValue("BirthDate");
+                user.Passport_Id = (string)reader.GetValue("Passport_Id");
+                user.Nationality = (string)reader.GetValue("Nationality");
+                user.Address= (string)reader.GetValue("Address");
+                user.User_Status = (string)reader.GetValue("User_Status");
             }
             reader.Close();
-            if (Login == l && Password == p)
-                return true;
-            else
-                return false;
+            return user;
         }
-    }
-public class CredRequest : User
+        public static void WorkAsCLient(User client)
+        {}
+        public static void WorkAsAdmin(User admin)
+        {}
+}
+public class Request : User
 {
     public int RequestId{get; set;}
     public int CreditSum{get; set;} // в сомони
@@ -211,7 +226,7 @@ public class CredRequest : User
     public int CreditTerm{get; set;} // в месяцах
     public string MaritalStatus{get; set;}
     public int ClientAge{get; set;}
-    public int ClinetEarning{get; set;}
+    public int ClientEarning{get; set;}
     public string PhoneNumber{get; set;}
     public int ClosedCreditCount{get; set;}
     public int DelayCreditCount{get; set;}
@@ -221,4 +236,5 @@ public class CredRequest : User
     }
 
 }
+
 }
