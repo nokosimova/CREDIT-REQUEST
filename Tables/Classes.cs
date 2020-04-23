@@ -21,6 +21,9 @@ public class User
     public string Address{get; set;}
     public string Login{get; set;}
     public string Password{get; set;}
+    public int ClosedCreditCount{get; set;}
+    public int DelayCreditCount{get; set;}
+
     public string User_Status{get; set;} //клиент или администратор
 
         public static void Authorization(SqlConnection con, ref User user)
@@ -245,7 +248,7 @@ public class User
         public void WorkAsAdmin()
         {}
 }
-public class Request : User
+public class Request:User
 {
     public int RequestId{get; set;}
     public int CreditSum{get; set;} // в сомони
@@ -255,13 +258,31 @@ public class Request : User
     public int ClientAge{get; set;}
     public int ClientEarning{get; set;}
     public string PhoneNumber{get; set;}
-    public int ClosedCreditCount{get; set;}
-    public int DelayCreditCount{get; set;}
-
-    public void InsertRequest(SqlConnection con)
+    public int CreditPecrectFromEarn{get;set;}//процент кредита от дохода
+    public void InsertRequest(SqlConnection con, User user)
     {
-    }
+        string insertSqlCommand = string.Format($"insert into Request_Table([UserId],[ClientFIO],[ClGender],[CreditSum],[CreditAim],[CreditTerm],[MaritalStatus],[ClientAge],[ClientEarning],[PhoneNumber],[ClosedCreditCount],[DelayCreditCount]) Values('{user.UserId}','{user.FisrtName + user.LastName + user.MiddleName}','{user.Gender}','{CreditSum}','{CreditAim}','{CreditTerm}','{MaritalStatus}','{ClientAge}','{ClientEarning}','{PhoneNumber}','{user.ClosedCreditCount}','{user.DelayCreditCount}'");
 
+        SqlCommand command = new SqlCommand(insertSqlCommand, con);
+        var result = command.ExecuteNonQuery();
+            
+        if (result > 0) 
+            Console.WriteLine("Запрос отправлен!");
+    }
+    public static void SelectAllRequest(SqlConnection con) // for admin work
+    {
+        string commandText = "Select * from Request_Table";
+            SqlCommand command = new SqlCommand(commandText, con);
+
+            SqlDataReader reader = command.ExecuteReader();
+            Console.WriteLine("----------------------------------------------------------------------");
+            Console.WriteLine("Id |               ФИО                |  Пол  | Серия паспорта |Статус|");
+            while (reader.Read())
+            {
+                System.Console.WriteLine($"{reader.GetValue("RequestId")} |{reader.GetValue("FirstName")} {reader.GetValue("LastName")} {reader.GetValue("MiddleName")} |{reader.GetValue("ClientAge")} |{reader.GetValue("CreditSum")} | {reader.GetValue("Credit_Status")}");
+            }
+            reader.Close();
+    }
 }
 
 }
